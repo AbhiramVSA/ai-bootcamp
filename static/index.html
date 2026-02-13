@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agents Bootcamp</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #111;
+    background: #fff;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  header {
+    padding: 3rem 1.5rem 2rem;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  header p {
+    color: #666;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+
+  .status {
+    font-size: 0.75rem;
+    color: #999;
+    margin-top: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #ccc;
+  }
+
+  .status-dot.ok { background: #22c55e; }
+  .status-dot.err { background: #ef4444; }
+
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 1.5rem 4rem;
+  }
+
+  .agent {
+    border-top: 1px solid #e5e5e5;
+    padding: 1.5rem 0;
+  }
+
+  .agent-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .agent-head:hover .agent-title { color: #444; }
+
+  .agent-num {
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    color: #999;
+    font-weight: 500;
+    min-width: 1.5rem;
+  }
+
+  .agent-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    transition: color 0.15s;
+  }
+
+  .agent-method {
+    font-size: 0.6875rem;
+    font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+    color: #999;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .agent-desc {
+    color: #666;
+    font-size: 0.8125rem;
+    margin-bottom: 1rem;
+    padding-left: 2rem;
+  }
+
+  .agent-flow {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding-left: 2rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    font-size: 0.6875rem;
+    font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  }
+
+  .flow-node {
+    padding: 2px 8px;
+    background: #f5f5f5;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    color: #555;
+  }
+
+  .flow-arrow { color: #ccc; }
+
+  .agent-body {
+    padding-left: 2rem;
+    display: none;
+  }
+
+  .agent.open .agent-body { display: block; }
+
+  .field { margin-bottom: 0.625rem; }
+
+  .field label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #555;
+    margin-bottom: 0.2rem;
+  }
+
+  .field input,
+  .field textarea,
+  .field select {
+    width: 100%;
+    padding: 0.5rem 0.625rem;
+    font-size: 0.8125rem;
+    font-family: inherit;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #fff;
+    color: #111;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .field input:focus,
+  .field textarea:focus {
+    border-color: #111;
+  }
+
+  .field textarea {
+    min-height: 72px;
+    resize: vertical;
+    font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+
+  .field-row {
+    display: flex;
+    gap: 0.625rem;
+  }
+
+  .field-row .field { flex: 1; }
+
+  button.run {
+    padding: 0.4375rem 1rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    font-family: inherit;
+    background: #111;
+    color: #fff;
+    border: 1px solid #111;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+    margin-top: 0.25rem;
+  }
+
+  button.run:hover { background: #333; }
+
+  button.run:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  .output {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: #fafafa;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    display: none;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-y: auto;
+    max-height: 400px;
+  }
+
+  .output.show { display: block; }
+
+  .output .lbl {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #999;
+    margin-bottom: 0.5rem;
+  }
+
+  .output .section {
+    margin-bottom: 0.75rem;
+  }
+
+  .output .section:last-child { margin-bottom: 0; }
+
+  .output .section-title {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.2rem;
+  }
+
+  .output .section-body {
+    color: #333;
+    line-height: 1.6;
+  }
+
+  .output .section-body pre {
+    font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+    font-size: 0.8125rem;
+    white-space: pre-wrap;
+  }
+
+  .output .pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+
+  .output .pill {
+    font-size: 0.75rem;
+    padding: 1px 8px;
+    background: #f0f0f0;
+    border-radius: 3px;
+    color: #444;
+  }
+
+  .output .score {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+  }
+
+  .err-msg {
+    color: #dc2626;
+    font-size: 0.8125rem;
+    margin-top: 0.5rem;
+  }
+
+  .streaming-cursor::after {
+    content: '\25A0';
+    animation: blink 0.8s step-end infinite;
+    font-size: 0.625rem;
+    vertical-align: middle;
+    margin-left: 2px;
+  }
+
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* Chat */
+  .chat-log {
+    max-height: 240px;
+    overflow-y: auto;
+    margin-bottom: 0.625rem;
+    font-size: 0.8125rem;
+  }
+
+  .chat-log .msg {
+    padding: 0.375rem 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .chat-log .msg:last-child { border-bottom: none; }
+
+  .chat-log .role {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .chat-input-row {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .chat-input-row input { flex: 1; }
+  .chat-input-row button { flex-shrink: 0; }
+
+  @media (max-width: 600px) {
+    header, main { padding-left: 1rem; padding-right: 1rem; }
+    .field-row { flex-direction: column; gap: 0; }
+    .agent-body { padding-left: 0; }
+    .agent-desc { padding-left: 0; }
+    .agent-flow { padding-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>AI Agents Bootcamp</h1>
+  <p>Ten progressive examples of AI agents built with PydanticAI and FastAPI.</p>
+  <div class="status">
+    <div class="status-dot" id="dot"></div>
+    <span id="statusMsg">Connecting...</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- 01 -->
+  <div class="agent" id="a01">
+    <div class="agent-head" onclick="toggle('a01')">
+      <span class="agent-num">01</span>
+      <span class="agent-title">Basic Agent</span>
+      <span class="agent-method">cli only</span>
+    </div>
+    <p class="agent-desc">Minimal agent with synchronous execution. No API endpoint.</p>
+    <div class="agent-flow">
+      <span class="flow-node">prompt</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node">agent</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node">text</span>
+    </div>
+    <div class="agent-body">
+      <p style="font-size:0.8125rem;color:#666">Run directly: <code style="font-size:0.8125rem;background:#f5f5f5;padding:1px 6px;border-radius:3px">python 01_basic_agent.py</code></p>
+    </div>
+  </div>
+
+  <!-- 02 -->
+  <div class="agent" id="a02">
+    <div class="agent-head" onclick="toggle('a02')">
+      <span class="agent-num">02</span>
+      <span class="agent-title">Structured Output</span>
+      <span class="agent-method">POST /review</span>
+    </div>
+    <p class="agent-desc">Returns Pydantic-validated structured data: rating, pros, cons, one-liner.</p>
+    <div class="agent-flow">
+      <span class="flow-node">movie name</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node">film critic agent</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node">MovieReview{}</span>
+    </div>
+    <div class="agent-body">
+      <div class="field">
+        <label>Movie</label>
+        <input type="text" id="in02" placeholder="Inception" />
+      </div>
+      <button class="run" id="btn02" onclick="doReview()">Run</button>
+      <div class="output" id="out02"></div>
+    </div>
+  </div>
+
+  <!-- 03 -->
+  <div class="agent" id="a03">
+    <div class="agent-head" onclick="toggle('a03')">
+      <span class="agent-num">03</span>
+      <span class="agent-title">Tools Agent</span>
+      <span class="agent-method">POST /ask</span>
+    </div>
+    <p class="agent-desc">Agent picks from three tools: dice roller, clock, and calculator.</p>
+    <div class="agent-flow">
+      <span class="flow-node">question</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node">agent</span>
+      <span class="flow-arrow">&harr;</span>
+      <span class="flow-node">tools</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node">answer</span>
+    </div>
+    <div class="agent-body">
+      <div class="field">
+        <label>Question</label>
+        <input type="text" id="in03" placeholder="Roll two dice and multiply them" />
+      </div>
+      <button class="run" id="btn03" onclick="doAsk()">Run</button>
+      <div class="output" id="out03"></div>
+    </div>
+  </div>
+
+  <!-- 04 -->
+  <div class="agent" id="a04">
+    <div class="agent-head" onclick="toggle('a04')">
+      <span class="agent-num">04</span>
+      <span class="agent-title">Dependencies Agent</span>
+      <span class="agent-method">POST /assist</span>
+    </div>
+    <p class="agent-desc">Runtime dependency injection. Agent adapts persona from your inputs.</p>
+    <div class="agent-flow">
+      <span class="flow-node">name + style</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node">dynamic prompt</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node">agent</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node">styled answer</span>
+    </div>
+    <div class="agent-body">
+      <div class="field-row">
+        <div class="field">
+          <label>Name</label>
+          <input type="text" id="in04name" placeholder="Alice" />
+        </div>
+        <div class="field">
+          <label>Style</label>
+          <input type="text" id="in04style" placeholder="pirate" />
+        </div>
+      </div>
+      <div class="field">
+        <label>Question</label>
+        <input type="text" id="in04q" placeholder="What is recursion?" />
+      </div>
+      <button class="run" id="btn04" onclick="doAssist()">Run</button>
+      <div class="output" id="out04"></div>
+    </div>
+  </div>
+
+  <!-- 05 -->
+  <div class="agent" id="a05">
+    <div class="agent-head" onclick="toggle('a05')">
+      <span class="agent-num">05</span>
+      <span class="agent-title">Streaming</span>
+      <span class="agent-method">GET /story</span>
+    </div>
+    <p class="agent-desc">Token-by-token streaming. Watch the text appear as the model generates it.</p>
+    <div class="agent-flow">
+      <span class="flow-node">topic</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node">storyteller agent</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node">stream</span>
+    </div>
+    <div class="agent-body">
+      <div class="field">
+        <label>Topic</label>
+        <input type="text" id="in05" placeholder="a mysterious door" />
+      </div>
+      <button class="run" id="btn05" onclick="doStory()">Run</button>
+      <div class="output" id="out05"></div>
+    </div>
+  </div>
+
+  <!-- 06 -->
+  <div class="agent" id="a06">
+    <div class="agent-head" onclick="toggle('a06')">
+      <span class="agent-num">06</span>
+      <span class="agent-title">Debate Arena</span>
+      <span class="agent-method">POST /debate</span>
+    </div>
+    <p class="agent-desc">Three agents: a passionate advocate, a cold logician, and a judge.</p>
+    <div class="agent-flow">
+      <span class="flow-node">topic</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node">debater for</span>
+      <span class="flow-arrow">&harr;</span>
+      <span class="flow-node">debater against</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node">judge</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node">verdict</span>
+    </div>
+    <div class="agent-body">
+      <div class="field">
+        <label>Topic</label>
+        <input type="text" id="in06" placeholder="Tabs vs Spaces" />
+      </div>
+      <button class="run" id="btn06" onclick="doDebate()">Run</button>
+      <div class="output" id="out06"></div>
+    </div>
+  </div>
+
+  <!-- 07 -->
+  <div class="agent" id="a07">
+    <div class="agent-head" onclick="toggle('a07')">
+      <span class="agent-num">07</span>
+      <span class="agent-title">Agent Pipeline</span>
+      <span class="agent-method">POST /blog</span>
+    </div>
+    <p class="agent-desc">Three agents chained: researcher, writer, editor. Each transforms the previous output.</p>
+    <div class="agent-flow">
+      <span class="flow-node">topic</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node">researcher</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node">writer</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node">editor</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node">blog post</span>
+    </div>
+    <div class="agent-body">
+      <div class="field">
+        <label>Topic</label>
+        <input type="text" id="in07" placeholder="quantum computing" />
+      </div>
+      <button class="run" id="btn07" onclick="doBlog()">Run</button>
+      <div class="output" id="out07"></div>
+    </div>
+  </div>
+
+  <!-- 08 -->
+  <div class="agent" id="a08">
+    <div class="agent-head" onclick="toggle('a08')">
+      <span class="agent-num">08</span>
+      <span class="agent-title">Roast My Code</span>
+      <span class="agent-method">POST /roast</span>
+    </div>
+    <p class="agent-desc">Gordon Ramsay of code review. Finds real bugs while being dramatic about it.</p>
+    <div class="agent-flow">
+      <span class="flow-node">code</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node">roast agent</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node">RoastResult{}</span>
+    </div>
+    <div class="agent-body">
+      <div class="field">
+        <label>Python code</label>
+        <textarea id="in08">def add(a, b):
+    return a - b</textarea>
+      </div>
+      <button class="run" id="btn08" onclick="doRoast()">Run</button>
+      <div class="output" id="out08"></div>
+    </div>
+  </div>
+
+  <!-- 09 -->
+  <div class="agent" id="a09">
+    <div class="agent-head" onclick="toggle('a09')">
+      <span class="agent-num">09</span>
+      <span class="agent-title">Whisper + Analysis</span>
+      <span class="agent-method">POST /transcribe</span>
+    </div>
+    <p class="agent-desc">Whisper transcribes audio, then an agent extracts summary, action items, and sentiment.</p>
+    <div class="agent-flow">
+      <span class="flow-node">audio</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node">whisper</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node">analyzer agent</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node">analysis</span>
+    </div>
+    <div class="agent-body">
+      <div class="field">
+        <label>Audio file</label>
+        <input type="file" id="in09" accept="audio/*" style="font-size:0.8125rem" />
+      </div>
+      <button class="run" id="btn09" onclick="doTranscribe()">Run</button>
+      <div class="output" id="out09"></div>
+    </div>
+  </div>
+
+  <!-- 10 -->
+  <div class="agent" id="a10">
+    <div class="agent-head" onclick="toggle('a10')">
+      <span class="agent-num">10</span>
+      <span class="agent-title">Memory Chat</span>
+      <span class="agent-method">POST /chat</span>
+    </div>
+    <p class="agent-desc">Stateful conversation. The agent remembers what you said earlier in the session.</p>
+    <div class="agent-flow">
+      <span class="flow-node">message</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node">chat agent</span>
+      <span class="flow-arrow">&harr;</span>
+      <span class="flow-node">session memory</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node">response</span>
+    </div>
+    <div class="agent-body">
+      <div class="chat-log" id="chatLog"></div>
+      <div class="chat-input-row">
+        <input type="text" id="in10" placeholder="Say something..." onkeydown="if(event.key==='Enter')doChat()" />
+        <button class="run" id="btn10" onclick="doChat()">Send</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const API = 'http://localhost:8000';
+
+// status
+async function ping() {
+  const d = document.getElementById('dot');
+  const m = document.getElementById('statusMsg');
+  try {
+    const r = await fetch(API + '/', { signal: AbortSignal.timeout(3000) });
+    if (r.ok) { d.className = 'status-dot ok'; m.textContent = 'Connected to localhost:8000'; }
+    else throw 0;
+  } catch { d.className = 'status-dot err'; m.textContent = 'Backend offline \u2014 run: uvicorn main:app --reload'; }
+}
+ping(); setInterval(ping, 15000);
+
+// toggle
+function toggle(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+
+// helpers
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function show(id, html) {
+  const el = document.getElementById(id);
+  el.innerHTML = html;
+  el.classList.add('show');
+}
+
+function err(id, msg) { show(id, '<span class="err-msg">' + esc(msg) + '</span>'); }
+
+function busy(id, on) {
+  const b = document.getElementById(id);
+  b.disabled = on;
+  b.textContent = on ? '...' : (id === 'btn10' ? 'Send' : 'Run');
+}
+
+async function post(endpoint, body, btnId, outId) {
+  busy(btnId, true);
+  try {
+    const r = await fetch(API + endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!r.ok) throw new Error(r.status + ': ' + (await r.text()));
+    return await r.json();
+  } catch (e) { err(outId, e.message); return null; }
+  finally { busy(btnId, false); }
+}
+
+function section(title, body) {
+  return '<div class="section"><div class="section-title">' + title + '</div><div class="section-body">' + body + '</div></div>';
+}
+
+function pills(arr) {
+  return '<div class="pills">' + arr.map(s => '<span class="pill">' + esc(s) + '</span>').join('') + '</div>';
+}
+
+// 02
+async function doReview() {
+  const v = document.getElementById('in02').value.trim(); if (!v) return;
+  const d = await post('/review', { movie: v }, 'btn02', 'out02'); if (!d) return;
+  show('out02',
+    section('Title', esc(d.title)) +
+    section('Rating', '<span class="score">' + d.rating + ' / 10</span>') +
+    section('Pros', pills(d.pros)) +
+    section('Cons', pills(d.cons)) +
+    section('One-liner', esc(d.one_liner))
+  );
+}
+
+// 03
+async function doAsk() {
+  const v = document.getElementById('in03').value.trim(); if (!v) return;
+  const d = await post('/ask', { question: v }, 'btn03', 'out03'); if (!d) return;
+  show('out03', '<div class="section-body">' + esc(d.answer) + '</div>');
+}
+
+// 04
+async function doAssist() {
+  const q = document.getElementById('in04q').value.trim(); if (!q) return;
+  const name = document.getElementById('in04name').value.trim() || 'Friend';
+  const style = document.getElementById('in04style').value.trim() || 'helpful assistant';
+  const d = await post('/assist', { user_name: name, style, question: q }, 'btn04', 'out04'); if (!d) return;
+  show('out04', '<div class="section-body">' + esc(d.answer) + '</div>');
+}
+
+// 05
+async function doStory() {
+  const topic = document.getElementById('in05').value.trim() || 'a mysterious door';
+  busy('btn05', true);
+  const out = document.getElementById('out05');
+  out.classList.add('show');
+  out.innerHTML = '<div id="streamText" class="streaming-cursor"></div>';
+  const el = document.getElementById('streamText');
+  try {
+    const r = await fetch(API + '/story?topic=' + encodeURIComponent(topic));
+    if (!r.ok) throw new Error(r.status + ': ' + (await r.text()));
+    const reader = r.body.getReader();
+    const dec = new TextDecoder();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      el.textContent += dec.decode(value, { stream: true });
+    }
+    el.classList.remove('streaming-cursor');
+  } catch (e) { err('out05', e.message); }
+  finally { busy('btn05', false); }
+}
+
+// 06
+async function doDebate() {
+  const v = document.getElementById('in06').value.trim(); if (!v) return;
+  const d = await post('/debate', { topic: v }, 'btn06', 'out06'); if (!d) return;
+  show('out06',
+    section('For \u2014 Opening', esc(d.for_opening)) +
+    section('Against \u2014 Opening', esc(d.against_opening)) +
+    section('For \u2014 Rebuttal', esc(d.for_rebuttal)) +
+    section('Against \u2014 Rebuttal', esc(d.against_rebuttal)) +
+    section('Verdict', esc(d.verdict))
+  );
+}
+
+// 07
+async function doBlog() {
+  const v = document.getElementById('in07').value.trim(); if (!v) return;
+  const d = await post('/blog', { topic: v }, 'btn07', 'out07'); if (!d) return;
+  show('out07',
+    section('1. Research', '<pre>' + esc(d.facts) + '</pre>') +
+    section('2. Draft', '<pre>' + esc(d.draft) + '</pre>') +
+    section('3. Final', '<pre>' + esc(d.final) + '</pre>')
+  );
+}
+
+// 08
+async function doRoast() {
+  const v = document.getElementById('in08').value.trim(); if (!v) return;
+  const d = await post('/roast', { code: v }, 'btn08', 'out08'); if (!d) return;
+  show('out08',
+    section('Score', '<span class="score">' + d.score + ' / 10</span>') +
+    section('Roast', esc(d.roast)) +
+    section('Issues', pills(d.issues)) +
+    section('Compliment', esc(d.compliment))
+  );
+}
+
+// 09
+async function doTranscribe() {
+  const f = document.getElementById('in09').files;
+  if (!f.length) return;
+  busy('btn09', true);
+  try {
+    const form = new FormData();
+    form.append('file', f[0]);
+    const r = await fetch(API + '/transcribe', { method: 'POST', body: form });
+    if (!r.ok) throw new Error(r.status + ': ' + (await r.text()));
+    const d = await r.json();
+    show('out09',
+      section('Transcript', esc(d.transcript)) +
+      section('Summary', esc(d.summary)) +
+      section('Action Items', pills(d.action_items)) +
+      section('Sentiment', esc(d.sentiment))
+    );
+  } catch (e) { err('out09', e.message); }
+  finally { busy('btn09', false); }
+}
+
+// 10
+const sid = 's' + Math.random().toString(36).slice(2, 8);
+async function doChat() {
+  const inp = document.getElementById('in10');
+  const msg = inp.value.trim(); if (!msg) return;
+  inp.value = '';
+  const log = document.getElementById('chatLog');
+  log.innerHTML += '<div class="msg"><span class="role">you</span><br>' + esc(msg) + '</div>';
+  log.scrollTop = log.scrollHeight;
+  busy('btn10', true);
+  try {
+    const r = await fetch(API + '/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: sid, message: msg }),
+    });
+    if (!r.ok) throw new Error(r.status + ': ' + (await r.text()));
+    const d = await r.json();
+    log.innerHTML += '<div class="msg"><span class="role">assistant</span><br>' + esc(d.response) + '</div>';
+    log.scrollTop = log.scrollHeight;
+  } catch (e) {
+    log.innerHTML += '<div class="msg"><span class="role err-msg">error</span><br>' + esc(e.message) + '</div>';
+  } finally { busy('btn10', false); }
+}
+</script>
+</body>
+</html>
