@@ -22,7 +22,7 @@ class TranscriptAnalysis(BaseModel):
 
 agent = Agent(
     'openai:gpt-5-mini',
-    result_type=TranscriptAnalysis,
+    output_type=TranscriptAnalysis,
     system_prompt=(
         'You analyze meeting transcripts. Extract a concise summary, '
         'a list of action items (things people committed to doing), '
@@ -44,7 +44,7 @@ async def transcribe(file: UploadFile):
 
     return {
         'transcript': transcript.text,
-        'summary': result.data.summary,
-        'action_items': result.data.action_items,
-        'sentiment': result.data.sentiment,
+        'summary': result.output.summary,
+        'action_items': result.output.action_items,
+        'sentiment': result.output.sentiment,
     }

@@ -30,7 +30,7 @@ async def chat(req: ChatRequest):
     history = sessions.get(req.session_id, [])
     result = await agent.run(req.message, message_history=history)
     sessions[req.session_id] = result.all_messages()
-    return {'response': result.data}
+    return {'response': result.output}
 
 
 @app.get('/history/{session_id}')

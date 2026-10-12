@@ -59,4 +59,4 @@ class AskRequest(BaseModel):
 @app.post('/ask')
 async def ask(req: AskRequest):
     result = await agent.run(req.question)
-    return {'answer': result.data}
+    return {'answer': result.output}

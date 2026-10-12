@@ -40,4 +40,4 @@ class AssistRequest(BaseModel):
 async def assist(req: AssistRequest):
     deps = UserDeps(user_name=req.user_name, style=req.style)
     result = await agent.run(req.question, deps=deps)
-    return {'answer': result.data}
+    return {'answer': result.output}

@@ -50,27 +50,27 @@ async def debate(req: DebateRequest):
 
     # Round 2: Rebuttals (each debater sees the opponent's argument)
     for_rebuttal = await debater_for.run(
-        f'Your opponent argued:\n\n{against_result.data}\n\nWrite a rebuttal defending your position FOR: {req.topic}'
+        f'Your opponent argued:\n\n{against_result.output}\n\nWrite a rebuttal defending your position FOR: {req.topic}'
     )
     against_rebuttal = await debater_against.run(
-        f'Your opponent argued:\n\n{for_result.data}\n\nWrite a rebuttal defending your position AGAINST: {req.topic}'
+        f'Your opponent argued:\n\n{for_result.output}\n\nWrite a rebuttal defending your position AGAINST: {req.topic}'
     )
 
     # Judge evaluates everything
     transcript = (
         f'TOPIC: {req.topic}\n\n'
-        f'=== FOR - Opening ===\n{for_result.data}\n\n'
-        f'=== AGAINST - Opening ===\n{against_result.data}\n\n'
-        f'=== FOR - Rebuttal ===\n{for_rebuttal.data}\n\n'
-        f'=== AGAINST - Rebuttal ===\n{against_rebuttal.data}'
+        f'=== FOR - Opening ===\n{for_result.output}\n\n'
+        f'=== AGAINST - Opening ===\n{against_result.output}\n\n'
+        f'=== FOR - Rebuttal ===\n{for_rebuttal.output}\n\n'
+        f'=== AGAINST - Rebuttal ===\n{against_rebuttal.output}'
     )
     verdict = await judge.run(f'Judge this debate:\n\n{transcript}')
 
     return {
         'topic': req.topic,
-        'for_opening': for_result.data,
-        'against_opening': against_result.data,
-        'for_rebuttal': for_rebuttal.data,
-        'against_rebuttal': against_rebuttal.data,
-        'verdict': verdict.data,
+        'for_opening': for_result.output,
+        'against_opening': against_result.output,
+        'for_rebuttal': for_rebuttal.output,
+        'against_rebuttal': against_rebuttal.output,
+        'verdict': verdict.output,
     }
