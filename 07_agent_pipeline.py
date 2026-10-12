@@ -33,15 +33,15 @@ class BlogRequest(BaseModel):
 async def blog(req: BlogRequest):
     # Stage 1: Research
     research_result = await researcher.run(f'Research this topic: {req.topic}')
-    facts = research_result.data
+    facts = research_result.output
 
     # Stage 2: Write
     write_result = await writer.run(f'Write a blog post based on these facts:\n\n{facts}')
-    draft = write_result.data
+    draft = write_result.output
 
     # Stage 3: Edit
     edit_result = await editor.run(f'Edit and improve this blog draft:\n\n{draft}')
-    final = edit_result.data
+    final = edit_result.output
 
     return {
         'facts': facts,

@@ -20,7 +20,7 @@ class MovieReview(BaseModel):
 
 agent = Agent(
     'openai:gpt-5-mini',
-    result_type=MovieReview,
+    output_type=MovieReview,
     system_prompt='You are a film critic. Analyze movies honestly. Rating is out of 10.',
 )
 
@@ -32,4 +32,4 @@ class ReviewRequest(BaseModel):
 @app.post('/review')
 async def review(req: ReviewRequest):
     result = await agent.run(f'Review the movie: {req.movie}')
-    return result.data
+    return result.output

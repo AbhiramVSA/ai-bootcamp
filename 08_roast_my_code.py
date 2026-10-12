@@ -19,7 +19,7 @@ class RoastResult(BaseModel):
 
 agent = Agent(
     'openai:gpt-5-mini',
-    result_type=RoastResult,
+    output_type=RoastResult,
     system_prompt=(
         'You are the Gordon Ramsay of code review. You roast code with dramatic flair. '
         'You are brutally honest but technically accurate. '
@@ -38,4 +38,4 @@ class CodeRequest(BaseModel):
 @app.post('/roast')
 async def roast(req: CodeRequest):
     result = await agent.run(f'Roast this code:\n\n```\n{req.code}\n```')
-    return result.data
+    return result.output
