@@ -75,6 +75,10 @@ uvicorn 02_structured_output:app --reload
 
 Python, PydanticAI, Pydantic, FastAPI, Uvicorn, and the OpenAI API.
 
+## Author
+
+[Abhiram](https://github.com/AbhiramVSA)
+
 ## License
 
 This repository is provided for educational purposes. It does not include a license file.
