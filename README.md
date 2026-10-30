@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/ai-agents-bootcamp-mark.png" alt="Three connected AI agent nodes branching from a prompt" width="128" />
+  <img src="assets/ai-agents-bootcamp-mark.png" alt="Three connected AI agent nodes branching from a prompt" width="200" />
 </p>
 
 <h1 align="center">AI Agents Bootcamp</h1>
