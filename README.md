@@ -24,7 +24,7 @@ git clone https://github.com/AbhiramVSA/ai-bootcamp.git
 cd ai-bootcamp
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
-python -m pip install -r requirements.txt
+python -m pip install -r requirements.txt 'fastapi<0.142'
 ```
 
 Set `OPENAI_API_KEY` in the environment or in a `.env` file in the repository root. Start the unified API:
